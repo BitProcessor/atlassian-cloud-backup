@@ -1,65 +1,78 @@
-[![datree-badge](https://s3.amazonaws.com/catalog.static.datree.io/datree-badge-28px.svg)](https://datree.io/?src=badge)
-# Introduction
-Jira and Confluence are not (officially) supporting the option of creating automatic backups for their cloud instance.
-This project was created to provide a fully automated infrastructure for backing up Atlassian Cloud Jira or Confluence instances on a periodic basis. 
+[![Build status](https://img.shields.io/github/workflow/status/bitprocessor/atlassian-cloud-backup/Docker/main)](https://github.com/BitProcessor/atlassian-cloud-backup/actions?query=workflow%3ADocker)
+[![License](https://img.shields.io/github/license/bitprocessor/atlassian-cloud-backup)](https://github.com/BitProcessor/atlassian-cloud-backup/blob/main/LICENSE)
 
-There are shell and bash scripts out there, which were created in order to download the backup file locally without the use of the "backup manager" UI, 
-but most of them are not maintained and throwing errors. So, this project is aiming for full backup automation, and therefore this is the features road map: 
 
-:white_check_mark: Create a script in python  
-:white_check_mark: Support creating config.json from user input ('wizard')   
-:white_check_mark: Download backup file locally  
-:white_check_mark: Add an option to stream backup file to S3  
-:white_check_mark: Check how to manually create a cron task on OS X / Linux  
-:white_check_mark: Check how to manually create a schedule task on windows  
-:black_square_button: Support adding cron / scheduled task from script    
 
-# Installation
-## Prerequisite:  
-:heavy_plus_sign: python 2.7.x or python 3.x.x  
-:heavy_plus_sign: [virtualenv](https://pypi.org/project/virtualenv/) installed globally (pip install virtualenv)  
+# Atlassian Cloud Backup
+## What is this?
+This project allows you to take a backup from Atlassian Cloud Jira & Confluence and stream it to an S3 bucket.
 
-## Instructions:
-1. Create and start [virtual environment](https://python-guide-cn.readthedocs.io/en/latest/dev/virtualenvs.html) (in this example, the virtualenv will be called "venv")  
-2. Install requirements  
+It's based on another project that can be found here: https://github.com/datreeio/jira-backup-py
+
+The version in this repo has been modified for the Python `boto3` library and is optimized for automated usage via a Docker container.
+
+## Usage
+### Atlassian API Token 
+Start by creating an API Token for your Atlassian account: https://id.atlassian.com/manage-profile/security/api-tokens
+
+### AWS
+1. Create an S3 bucket
+2. Create an IAM user on AWS with *Programmatic access*, note the Access Key ID and Secret Access Key and attach the following policy to it:
 ```
-$(venv) pip install -r requirements.txt
-```  
-3. Generate an API token at https://id.atlassian.com/manage/api-tokens  
-![Screenshot](https://github.com/datreeio/jira-backup-py/blob/master/screenshots/atlassian-api-token.png)  
-4. Fill the details at the [config.yaml file](https://github.com/datreeio/jira-backup-py/blob/master/config.json) or run the backup.py script with '-w' flag  
-5. Run backup.py script with the flag '-j' to backup Jira or '-c' to backup Confluence  
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::<s3 bucket>"
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:DeleteObject"
+            ],
+            "Resource": "arn:aws:s3:::<s3 bucket>/*"
+        }
+    ]
+}
 ```
-$(venv) python backup.py 
-```  
-![Screenshot](https://github.com/datreeio/jira-backup-py/blob/master/screenshots/terminal.png)  
+### Docker
+To use the container, replace all placeholders with the actual values and run the following command:
 
-## What's next?
-It depends on your needs. I, for example, use this script together with [serverless](https://serverless.com/) to create a periodic [AWS lambda](https://aws.amazon.com/lambda/) which triggered every 4 days, creating a backup and upload it directly to S3.  
-
-There is a more "stupid" option to get the same result - by creating a cron / scheduled task on your local machine:  
-* **OS X / Linux:** set a cron task with crontab 
-``` 
-echo "* * * * * cd %script dir% && %activate virtualenv% && python backup.py > %log name% 2>&1" | crontab -
-```  
-Example for adding a cron task which will run every 4 days, at 10:00  
 ```
-echo "0 10 */4 * * cd ~/Dev/jira-backup-py && source venv/bin/activate && python backup.py > backup_script.log 2>&1" | crontab -
-```  
+docker run -it --rm \
+    -e AWS_ACCESS_KEY_ID="<aws access key id>" \
+    -e AWS_SECRET_ACCESS_KEY="<aws secret access key>" \
+    -e S3_BUCKET="<s3 bucket>" \
+    -e INCLUDE_ATTACHMENTS="true" \
+    -e HOST_URL="https://<something>.atlassian.net" \
+    -e USER_EMAIL="<email associated with api token>" \
+    -e API_TOKEN="<atlassian api token>" \
+    ghcr.io/bitprocessor/atlassian-cloud-backup:latest
+```
 
-* **Windows:** set a scheduled task with task scheduler  
-``` 
-schtasks /create /tn "%task name%" /sc DAILY /mo %number of days% /tr "%full path to win_task_wrapper.bat%" /st %start time%
-```  
-Example for adding a scheduled task which will run every 4 days, at 10:00  
-``` 
-schtasks /create /tn "jira-backup" /sc DAILY /mo 4 /tr "C:\jira-backup-py\win_task_wrapper.bat" /st 10:00
-```  
-# Changelog:
-* 04 SEP 2020 - Support Confluence backup  
-* 16 JAN 2019 - Updated script to work w/ [API token](https://confluence.atlassian.com/cloud/api-tokens-938839638.html), instead personal Jira user name and password  
+### Kubernetes Cronjob
+TODO
 
-# Resources:
-:heavy_plus_sign: [JIRA support - How to Automate Backups for JIRA Cloud applications](https://confluence.atlassian.com/jirakb/how-to-automate-backups-for-jira-cloud-applications-779160659.html)  
-:heavy_plus_sign: [Atlassian Labs' automatic-cloud-backup script](https://bitbucket.org/atlassianlabs/automatic-cloud-backup/src/d43ca5f33192e78b2e1869ab7c708bb32bfd7197/backup.ps1?at=master&fileviewer=file-view-default)  
-:heavy_plus_sign: [A more maintainable version of Atlassian Labs' script](https://github.com/mattock/automatic-cloud-backup)  
+### Good to know
+Note that both Jira & Confluence have a limit on backup frequency. 
+If you run the container too often, you might end up with one or both of the following messages:
+
+```
+-> Starting backup; include attachments: true
+Error while starting confluence backup
+Status code    : 406
+Status message : Backup frequency is limited. You can not make another backup right now. Approximate time till next allowed backup: 14h 19m
+```
+
+```
+-> Starting backup; include attachments: true
+Error while starting jira backup
+Status code   : 412
+Status message: {"error":"Backup frequency is limited. You cannot make another backup right now. Approximate time until next allowed backup: 26h 58m"}
+```
