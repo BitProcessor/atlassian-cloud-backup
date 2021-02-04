@@ -51,6 +51,8 @@ docker run -it --rm \
     -e HOST_URL="https://<something>.atlassian.net" \
     -e USER_EMAIL="<email associated with api token>" \
     -e API_TOKEN="<atlassian api token>" \
+    -e BACKUP_JIRA="true" \
+    -e BACKUP_CONFLUENCE="true" \
     ghcr.io/bitprocessor/atlassian-cloud-backup:latest
 ```
 

@@ -13,8 +13,10 @@ class Atlassian:
         if not self.check_config():
             print("Fatal: one or more configuration errors encountered")
             exit(1)
-        else:
-            print('-> Starting backup; include attachments: {}'.format(os.environ['INCLUDE_ATTACHMENTS']))
+        if not self.check_nothing_todo():
+            exit(1)
+
+        print('-> Starting backup; include attachments: {}'.format(os.environ['INCLUDE_ATTACHMENTS']))
 
         self.session = requests.Session()
         self.session.auth = (os.environ['USER_EMAIL'], os.environ['API_TOKEN'])
@@ -68,9 +70,24 @@ class Atlassian:
             print("Error: AWS_SECRET_ACCESS_KEY")
             config_errors=True
 
-        return not config_errors
-    
+        if not ("BACKUP_JIRA" in os.environ and 
+                (os.environ['BACKUP_JIRA'] == "true" or os.environ['BACKUP_JIRA'] == "false")):
+            print("Error: invalid value for BACKUP_JIRA option")
+            config_errors=True
 
+        if not ("BACKUP_CONFLUENCE" in os.environ and 
+                (os.environ['BACKUP_CONFLUENCE'] == "true" or os.environ['BACKUP_CONFLUENCE'] == "false")):
+            print("Error: invalid value for BACKUP_CONFLUENCE option")
+            config_errors=True
+
+        return not config_errors
+
+    def check_nothing_todo(self):
+        if os.environ['BACKUP_CONFLUENCE'] == "false" and os.environ['BACKUP_JIRA'] == "false":
+            print("Error: both BACKUP_CONFLUENCE and BACKUP_JIRA set to false - Nothing to do!")
+            return True
+        return False
+    
     def create_confluence_backup(self):
         backup = self.session.post(self.start_confluence_backup, data=json.dumps(self.payload))
         if backup.status_code != 200:
@@ -124,19 +141,21 @@ if __name__ == '__main__':
 
     atlass = Atlassian()
     
-    # Confluence backup
-    confluence_backup_url = atlass.create_confluence_backup()
-    print('-> Confluence Backup URL: {}'.format(confluence_backup_url))
-    file_name = 'confluence_{timestamp}_{uuid}.zip'.format(
-        timestamp=time.strftime('%Y%m%d_%H%M'), uuid=confluence_backup_url.split('/')[-1].replace('?fileId=', ''))
+    if os.environ['BACKUP_CONFLUENCE'] == "true":
+        # Confluence backup
+        confluence_backup_url = atlass.create_confluence_backup()
+        print('-> Confluence Backup URL: {}'.format(confluence_backup_url))
+        file_name = 'confluence_{timestamp}_{uuid}.zip'.format(
+            timestamp=time.strftime('%Y%m%d_%H%M'), uuid=confluence_backup_url.split('/')[-1].replace('?fileId=', ''))
 
-    atlass.stream_to_s3(confluence_backup_url, file_name)
+        atlass.stream_to_s3(confluence_backup_url, file_name)
 
-    # Jira backup
-    jira_backup_url = atlass.create_jira_backup()
-    print('-> Jira Backup URL: {}'.format(jira_backup_url))
-    file_name = 'jira_{timestamp}_{uuid}.zip'.format(
-        timestamp=time.strftime('%Y%m%d_%H%M'), uuid=jira_backup_url.split('/')[-1].replace('?fileId=', ''))
+    if os.environ['BACKUP_JIRA'] == "true":
+        # Jira backup
+        jira_backup_url = atlass.create_jira_backup()
+        print('-> Jira Backup URL: {}'.format(jira_backup_url))
+        file_name = 'jira_{timestamp}_{uuid}.zip'.format(
+            timestamp=time.strftime('%Y%m%d_%H%M'), uuid=jira_backup_url.split('/')[-1].replace('?fileId=', ''))
 
-    atlass.stream_to_s3(jira_backup_url, file_name)
+        atlass.stream_to_s3(jira_backup_url, file_name)
     
