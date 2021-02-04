@@ -25,7 +25,7 @@ class Atlassian:
         self.start_confluence_backup = '{}/wiki/rest/obm/1.0/runbackup'.format(os.environ['HOST_URL'])
         self.start_jira_backup = '{}/rest/backup/1/export/runbackup'.format(os.environ['HOST_URL'])
         self.backup_status = {}
-        self.wait = 10
+        self.wait = 30
 
     def check_config(self):
         config_errors=False
@@ -121,7 +121,10 @@ class Atlassian:
             time.sleep(self.wait)
             while 'result' not in self.backup_status.keys():
                 self.backup_status = json.loads(self.session.get(jira_backup_status).text)
-                print('Current status: {description}'.format(description=self.backup_status['description']))
+                print('Current status: {status} {progress}; {description}'.format(
+                    status=self.backup_status['status'], 
+                    progress=self.backup_status['progress'], 
+                    description=self.backup_status['description']))
                 time.sleep(self.wait)
             return '{prefix}/{result_id}'.format(
                 prefix=os.environ['HOST_URL'] + '/plugins/servlet', result_id=self.backup_status['result'])
