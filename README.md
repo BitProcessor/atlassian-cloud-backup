@@ -1,4 +1,4 @@
-[![Build status](https://img.shields.io/github/workflow/status/bitprocessor/atlassian-cloud-backup/Docker/main)](https://github.com/BitProcessor/atlassian-cloud-backup/actions?query=workflow%3ADocker)
+[![Build status](https://img.shields.io/github/workflow/status/bitprocessor/atlassian-cloud-backup/Docker)](https://github.com/BitProcessor/atlassian-cloud-backup/actions?query=workflow%3ADocker)
 [![License](https://img.shields.io/github/license/bitprocessor/atlassian-cloud-backup)](https://github.com/BitProcessor/atlassian-cloud-backup/blob/main/LICENSE)
 
 
