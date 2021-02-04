@@ -13,7 +13,7 @@ class Atlassian:
         if not self.check_config():
             print("Fatal: one or more configuration errors encountered")
             exit(1)
-        if not self.check_nothing_todo():
+        if self.check_nothing_todo():
             exit(1)
 
         print('-> Starting backup; include attachments: {}'.format(os.environ['INCLUDE_ATTACHMENTS']))
