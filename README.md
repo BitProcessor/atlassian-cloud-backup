@@ -7,9 +7,7 @@
 ## What is this?
 This project allows you to take a backup from Atlassian Cloud Jira & Confluence and stream it to an S3 bucket.
 
-It's based on another project that can be found here: https://github.com/datreeio/jira-backup-py
-
-The version in this repo has been modified for the Python `boto3` library and is optimized for automated usage via a Docker container.
+This fork has been modified for the `boto3` [AWS SDK for Python](https://github.com/boto/boto3)  and is optimized for automated usage via a Docker container.
 
 ## Usage
 ### Atlassian API Token 
