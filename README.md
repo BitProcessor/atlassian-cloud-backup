@@ -57,7 +57,60 @@ docker run -it --rm \
 ```
 
 ### Kubernetes Cronjob
-TODO
+To use the container as a Kubernetes Cronjob, replace all placeholders with the actual values and apply the Cronjob manifest.
+You'll probably want to use some form of secret encryption, but that is beyond the scope of this readme.
+
+Note: make sure to specify the boolean values as a string, so `value: "true"` NOT `value: true`
+
+The schedule is set to run at 02:14am, every Sunday. Change to suit your needs.
+
+*(untested at this point, will update later)*
+
+```
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: atlassian-cloud-backup
+  namespace: <namespace>
+spec:
+  schedule: "14 2 * * 0"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: atlassian-cloud-backup
+            image: ghcr.io/bitprocessor/atlassian-cloud-backup:latest
+            env:
+            - name: AWS_ACCESS_KEY_ID
+              value: <aws access key id>
+            - name: AWS_SECRET_ACCESS_KEY
+              value: <aws secret access key>
+            - name: S3_BUCKET
+              value: <s3 bucket>
+            - name: INCLUDE_ATTACHMENTS
+              value: "true"
+            - name: HOST_URL
+              value: https://<something>.atlassian.net
+            - name: USER_EMAIL
+              value: <email associated with api token>
+            - name: API_TOKEN
+              value: <atlassian api token>
+            - name: BACKUP_JIRA
+              value: "true"
+            - name: BACKUP_CONFLUENCE
+              value: "true"
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                memory: 64Mi
+```
 
 ### Good to know
 Note that both Jira & Confluence have a limit on backup frequency. 
