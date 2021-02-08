@@ -136,7 +136,7 @@ class Atlassian:
     
     def s3_cleanup(self, prefix):
 
-        print('-> Removing old backups from S3, prefix: %s', prefix)
+        print('-> Removing old backups from S3, prefix: %s' % prefix)
         objs = []
         kwargs = { 'Bucket': os.environ['S3_BUCKET'], 'Prefix': prefix }
         while True:
