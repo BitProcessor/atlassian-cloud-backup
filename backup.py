@@ -57,7 +57,7 @@ class Atlassian:
             config_errors=True
 
         # Check if S3_KEEP_LAST argument is valid
-        if not "S3_KEEP_LAST" in  os.environ or not int(os.environ['S3_KEEP_LAST']) or not os.environ['S3_KEEP_LAST'] > 0:
+        if not "S3_KEEP_LAST" in  os.environ or not int(os.environ['S3_KEEP_LAST']) or not int(os.environ['S3_KEEP_LAST']) > 0:
             print("Error: invalid value for S3_KEEP_LAST")
             config_errors=True
 
@@ -149,7 +149,7 @@ class Atlassian:
                 break
 
         get_last_modified = lambda obj: int(obj['LastModified'].strftime('%s'))
-        keep = [s['Key'] for s in sorted(objs, key=get_last_modified, reverse=True)][:os.environ['S3_KEEP_LAST']]
+        keep = [s['Key'] for s in sorted(objs, key=get_last_modified, reverse=True)][:int(os.environ['S3_KEEP_LAST'])]
 
         for o in objs:
             if o['Key'] not in keep:
