@@ -127,16 +127,16 @@ class Atlassian:
             time.sleep(self.wait)
             while 'result' not in self.backup_status.keys():
                 self.backup_status = json.loads(self.session.get(jira_backup_status).text)
-                print('Current status: {status} {progress}; {description}'.format(
+                print('Current status: {status} - {progress}%'.format(
                     status=self.backup_status['status'], 
-                    progress=self.backup_status['progress'], 
-                    description=self.backup_status['description']))
+                    progress=self.backup_status['progress']))
                 time.sleep(self.wait)
             return '{prefix}/{result_id}'.format(
                 prefix=os.environ['HOST_URL'] + '/plugins/servlet', result_id=self.backup_status['result'])
     
     def s3_cleanup(self, prefix):
 
+        print('-> Removing old backups from S3, prefix: %s', prefix)
         objs = []
         kwargs = { 'Bucket': os.environ['S3_BUCKET'], 'Prefix': prefix }
         while True:
