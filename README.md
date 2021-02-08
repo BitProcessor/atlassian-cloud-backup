@@ -55,7 +55,7 @@ docker run -it --rm \
     -e API_TOKEN="<atlassian api token>" \
     -e BACKUP_JIRA="true" \
     -e BACKUP_CONFLUENCE="true" \
-    ghcr.io/bitprocessor/atlassian-cloud-backup:latest
+    ghcr.io/bitprocessor/atlassian-cloud-backup:1.0.0
 ```
 
 ### Kubernetes Cronjob
@@ -86,7 +86,7 @@ spec:
           restartPolicy: Never
           containers:
           - name: atlassian-cloud-backup
-            image: ghcr.io/bitprocessor/atlassian-cloud-backup:latest
+            image: ghcr.io/bitprocessor/atlassian-cloud-backup:1.0.0
             env:
             - name: AWS_ACCESS_KEY_ID
               value: <aws access key id>
