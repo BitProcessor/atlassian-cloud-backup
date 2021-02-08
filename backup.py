@@ -19,6 +19,7 @@ class Atlassian:
         print('-> Starting backup; include attachments: {}'.format(os.environ['INCLUDE_ATTACHMENTS']))
 
         self.session = requests.Session()
+        self.s3 = boto3.client('s3')
         self.session.auth = (os.environ['USER_EMAIL'], os.environ['API_TOKEN'])
         self.session.headers.update({'Content-Type': 'application/json', 'Accept': 'application/json'})
         self.payload = {"cbAttachments": os.environ['INCLUDE_ATTACHMENTS'], "exportToCloud": "true"}
@@ -53,6 +54,11 @@ class Atlassian:
         if not ("INCLUDE_ATTACHMENTS" in os.environ and 
                 (os.environ['INCLUDE_ATTACHMENTS'] == "true" or os.environ['INCLUDE_ATTACHMENTS'] == "false")):
             print("Error: invalid value for INCLUDE_ATTACHMENTS option")
+            config_errors=True
+
+        # Check if S3_KEEP_LAST argument is valid
+        if not "S3_KEEP_LAST" in  os.environ or not int(os.environ['S3_KEEP_LAST']) or not os.environ['S3_KEEP_LAST'] > 0:
+            print("Error: invalid value for S3_KEEP_LAST")
             config_errors=True
 
         # Check if S3 Bucket name is valid
@@ -128,16 +134,37 @@ class Atlassian:
                 time.sleep(self.wait)
             return '{prefix}/{result_id}'.format(
                 prefix=os.environ['HOST_URL'] + '/plugins/servlet', result_id=self.backup_status['result'])
+    
+    def s3_cleanup(self, prefix):
+
+        objs = []
+        kwargs = { 'Bucket': os.environ['S3_BUCKET'], 'Prefix': prefix }
+        while True:
+            resp = self.s3.list_objects_v2(**kwargs)
+            for o in resp['Contents']:
+                objs.append(o)
+            try:
+                kwargs['ContinuationToken'] = resp['NextContinuationToken']
+            except KeyError:
+                break
+
+        get_last_modified = lambda obj: int(obj['LastModified'].strftime('%s'))
+        keep = [s['Key'] for s in sorted(objs, key=get_last_modified, reverse=True)][:os.environ['S3_KEEP_LAST']]
+
+        for o in objs:
+            if o['Key'] not in keep:
+                kwargs = { 'Bucket': os.environ['S3_BUCKET'], 'Key': o['Key'] }
+                self.s3.delete_object(**kwargs)
 
     def stream_to_s3(self, url, remote_filename):
 
         print('-> Streaming to S3')
         r = self.session.get(url, stream=True)
-        s3 = boto3.client('s3')
+
         with r as part:
             part.raw.decode_content = True
             conf = boto3.s3.transfer.TransferConfig(multipart_threshold=10000, max_concurrency=4)
-            s3.upload_fileobj(part.raw, os.environ['S3_BUCKET'], remote_filename, Config=conf)
+            self.s3.upload_fileobj(part.raw, os.environ['S3_BUCKET'], remote_filename, Config=conf)
         return
 
 if __name__ == '__main__':
@@ -152,6 +179,7 @@ if __name__ == '__main__':
             timestamp=time.strftime('%Y%m%d_%H%M'), uuid=confluence_backup_url.split('/')[-1].replace('?fileId=', ''))
 
         atlass.stream_to_s3(confluence_backup_url, file_name)
+        atlass.s3_cleanup('confluence')
 
     if os.environ['BACKUP_JIRA'] == "true":
         # Jira backup
@@ -161,4 +189,5 @@ if __name__ == '__main__':
             timestamp=time.strftime('%Y%m%d_%H%M'), uuid=jira_backup_url.split('/')[-1].replace('?fileId=', ''))
 
         atlass.stream_to_s3(jira_backup_url, file_name)
+        atlass.s3_cleanup('jira')
     

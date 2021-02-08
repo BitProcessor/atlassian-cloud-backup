@@ -46,6 +46,7 @@ To use the container, replace all placeholders with the actual values and run th
 docker run -it --rm \
     -e AWS_ACCESS_KEY_ID="<aws access key id>" \
     -e AWS_SECRET_ACCESS_KEY="<aws secret access key>" \
+    -e S3_KEEP_LAST="<number of backups to keep>" \
     -e S3_BUCKET="<s3 bucket>" \
     -e INCLUDE_ATTACHMENTS="true" \
     -e HOST_URL="https://<something>.atlassian.net" \
@@ -90,6 +91,8 @@ spec:
               value: <aws access key id>
             - name: AWS_SECRET_ACCESS_KEY
               value: <aws secret access key>
+            - name: S3_KEEP_LAST
+              value: <number of backups to keep>
             - name: S3_BUCKET
               value: <s3 bucket>
             - name: INCLUDE_ATTACHMENTS
