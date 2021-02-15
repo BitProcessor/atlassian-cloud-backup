@@ -66,8 +66,6 @@ Note: make sure to specify the boolean values as a string, so `value: "true"` NO
 
 The schedule is set to run at 02:14am, every Sunday. Change to suit your needs.
 
-*(untested at this point, will update later)*
-
 ```
 ---
 apiVersion: batch/v1beta1
