@@ -6,7 +6,7 @@ certifi==2020.12.5
 charset-normalizer==2.0.12
 colorama==0.4.4
 contextlib2==21.6.0
-distlib==0.3.3
+distlib==0.3.4
 distro==1.6.0
 html5lib==1.1
 idna==3.3
