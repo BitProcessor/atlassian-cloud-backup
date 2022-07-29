@@ -40,6 +40,8 @@ Start by creating an API Token for your Atlassian account: https://id.atlassian.
     ]
 }
 ```
+Additional authentication methods such as [IAM Roles for Amazon EC2](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2.html) are supported. You many need to set additional environment variables to configure certain methods. See [boto3 documentation](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html) for details.
+
 ### Docker
 To use the container, replace all placeholders with the actual values and run the following command:
 
