@@ -1,4 +1,4 @@
-FROM alpine:3.16.0
+FROM alpine:3.16.2
 
 LABEL org.opencontainers.image.source https://github.com/bitprocessor/atlassian-cloud-backup
 
