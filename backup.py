@@ -65,16 +65,6 @@ class Atlassian:
         if not "S3_BUCKET" in os.environ or not re.match(r"(?=^.{3,63}$)(?!^(\d+\.)+\d+$)(^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$)", os.environ['S3_BUCKET']):
             print("Error: invalid S3_BUCKET")
             config_errors=True
-        
-        # Check AWS_ACCESS_KEY_ID
-        if not "AWS_ACCESS_KEY_ID" in os.environ or os.environ['AWS_ACCESS_KEY_ID'] == "":
-            print("Error: AWS_ACCESS_KEY_ID")
-            config_errors=True
-        
-        # Check AWS_SECRET_ACCESS_KEY
-        if not "AWS_SECRET_ACCESS_KEY" in os.environ or os.environ['AWS_SECRET_ACCESS_KEY'] == "":
-            print("Error: AWS_SECRET_ACCESS_KEY")
-            config_errors=True
 
         if not ("BACKUP_JIRA" in os.environ and 
                 (os.environ['BACKUP_JIRA'] == "true" or os.environ['BACKUP_JIRA'] == "false")):
