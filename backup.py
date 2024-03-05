@@ -18,8 +18,14 @@ class Atlassian:
 
         print('-> Starting backup; include attachments: {}'.format(os.environ['INCLUDE_ATTACHMENTS']))
 
+        s3config = {}
+        if os.environ['S3_REGION']:
+            s3config["region_name"] = os.environ['S3_REGION']
+        if os.environ['S3_ENDPOINT']:
+            s3config["endpoint_url"] = os.environ['S3_ENDPOINT']
+
         self.session = requests.Session()
-        self.s3 = boto3.client('s3')
+        self.s3 = boto3.client('s3', **s3config)
         self.session.auth = (os.environ['USER_EMAIL'], os.environ['API_TOKEN'])
         self.session.headers.update({'Content-Type': 'application/json', 'Accept': 'application/json'})
         self.payload = {"cbAttachments": os.environ['INCLUDE_ATTACHMENTS'], "exportToCloud": "true"}
