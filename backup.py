@@ -19,9 +19,9 @@ class Atlassian:
         print('-> Starting backup; include attachments: {}'.format(os.environ['INCLUDE_ATTACHMENTS']))
 
         s3config = {}
-        if os.environ['S3_REGION']:
+        if 'S3_REGION' in os.environ:
             s3config["region_name"] = os.environ['S3_REGION']
-        if os.environ['S3_ENDPOINT']:
+        if 'S3_ENDPOINT' in os.environ:
             s3config["endpoint_url"] = os.environ['S3_ENDPOINT']
 
         self.session = requests.Session()
